@@ -3,7 +3,7 @@ const cors = require("cors");
 const path = require("path");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
 
 /* =========================
    MIDDLEWARE
@@ -15,9 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 /* =========================
    STATIC FRONTEND
 ========================= */
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "acc.html"));
-});
+app.use(express.static(__dirname));
 
 /* =========================
    FAKE DATABASE (TEMPORAIRE)
