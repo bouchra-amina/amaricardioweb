@@ -6,7 +6,6 @@ document.getElementById("registerForm").addEventListener("submit", async functio
         age: document.querySelector('input[type="number"]').value,
         sexe: document.querySelector('select').value,
         wilaya: document.querySelectorAll('input[type="text"]')[1].value,
-        telephone: document.querySelector('input[type="tel"]').value,
         profession: document.querySelectorAll('input[type="text"]')[2].value,
         maladies: document.querySelector('textarea').value
     };
