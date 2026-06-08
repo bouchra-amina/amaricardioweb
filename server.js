@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3002;
 const { Pool } = require("pg");
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.${{ Postgres.DATABASE_URL }},
     ssl: {
         rejectUnauthorized: false
     }
