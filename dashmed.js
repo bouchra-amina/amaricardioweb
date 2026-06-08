@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // =========================
 async function loadQuestions() {
     try {
-        const res = await fetch("http://localhost:3000/api/questions");
+        const res = await fetch("http://localhost:3002/api/questions");
         const questions = await res.json();
 
         const container = document.getElementById("questionsContainer");
