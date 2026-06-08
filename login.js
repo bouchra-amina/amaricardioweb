@@ -11,7 +11,7 @@ document.getElementById("registerForm").addEventListener("submit", async functio
         maladies: document.querySelector('textarea').value
     };
 
-    const res = await fetch("http://localhost:3000/api/register", {
+    const res = await fetch("http://localhost:3002/api/register", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
