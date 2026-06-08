@@ -2,46 +2,92 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const userId = localStorage.getItem("userId");
 
-    // 🔒 protection page
     if (!userId) {
         window.location.href = "/login.html";
         return;
     }
 
+    const form = document.getElementById("questionForm");
+    const messageBox = document.getElementById("message");
+
+    if (!form) {
+        console.error("questionForm introuvable");
+        return;
+    }
+
     loadQuestions(userId);
 
-    const form = document.getElementById("questionForm");
-
-    form.addEventListener("submit", async function (e) {
+    form.addEventListener("submit", async (e) => {
         e.preventDefault();
+
+        const sujet = document.getElementById("subject").value.trim();
+        const message = document.getElementById("question").value.trim();
+
+        if (!sujet || !message) {
+            messageBox.innerText = "Veuillez remplir tous les champs";
+            return;
+        }
 
         const data = {
             patientId: userId,
-            sujet: document.getElementById("subject").value,
-            message: document.getElementById("question").value
+            sujet,
+            message
         };
 
         try {
-            const res = await fetch("https://ton-backend-url/api/question", {
+            const res = await fetch("https://amaricardioweb-production.up.railway.app/api/question", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data)
             });
 
             const result = await res.json();
 
-            document.getElementById("message").innerText = result.message;
-
-            form.reset();
-
-            loadQuestions(userId);
+            if (res.ok) {
+                messageBox.innerText = result.message;
+                form.reset();
+                loadQuestions(userId);
+            } else {
+                messageBox.innerText = result.message || "Erreur serveur";
+            }
 
         } catch (error) {
             console.error(error);
-            document.getElementById("message").innerText = "Erreur lors de l'envoi";
+            messageBox.innerText = "Erreur réseau";
         }
     });
 
 });
+
+// =========================
+// LOAD QUESTIONS FIXED
+// =========================
+async function loadQuestions(userId) {
+
+    try {
+        const res = await fetch(`https://amaricardioweb-production.up.railway.app/api/questions/${userId}`);
+
+        if (!res.ok) throw new Error("API error");
+
+        const data = await res.json();
+
+        const container = document.getElementById("questionsList");
+        container.innerHTML = "";
+
+        data.forEach(q => {
+            container.innerHTML += `
+                <div class="question">
+                    <strong>${q.sujet}</strong>
+                    <p>${q.message}</p>
+                    <small>Status: ${q.status}</small>
+                    <p><b>Réponse:</b> ${q.reponse || "Pas encore répondu"}</p>
+                </div>
+            `;
+        });
+
+    } catch (error) {
+        console.error("loadQuestions error:", error);
+        document.getElementById("questionsList").innerHTML =
+            "<p>Erreur de chargement des questions</p>";
+    }
+}
