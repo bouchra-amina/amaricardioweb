@@ -40,21 +40,27 @@
         <form id="registerForm">
 
             <label>Nom complet - الاسم الكامل</label>
-            <input type="text" placeholder="Entrez votre nom complet" required>
+            <input type="text"  name="full_name" placeholder="Entrez votre nom complet" required>
+            
+            <label>email - البريد الإلكتروني</label>
+            <input type="email"  name="email" placeholder="Entrez votre email(pour prochaine connexion)" required>
+
+            <label>mot de passe - كلمة المرور</label>
+            <input type="password" name="password" placeholder="Entrez votre mot de passe" required>
 
 
             <label>Âge - العمر</label>
-            <input type="number" min="1" max="120" placeholder="Votre âge" required>
+            <input type="number"  name="age"  min="1" max="120" placeholder="Votre âge" required>
 
             <label>Sexe - الجنس</label>
-            <select required>
+            <select name="gender" required>
                 <option value="">Choisir - اختر</option>
                 <option>Homme - ذكر</option>
                 <option>Femme - أنثى</option>
             </select>
 
             <label>Wilaya - الولاية</label>
-            <input type="text" placeholder="Ex : Alger, Oran, Annaba..." required>
+            <input type="text" name="wilaya" placeholder="Ex : Alger, Oran, Annaba..." required>
 
             <label>Profession - المهنة</label>
             <input type="text" placeholder="Votre profession" required>
