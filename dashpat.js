@@ -1,53 +1,83 @@
+document.addEventListener("DOMContentLoaded", () => {
 
-// Simulation patient (plus tard remplacé par backend)
-let patient = {
-    nom: "Patient"
-};
+    // =========================
+    // LOAD QUESTIONS AU CHARGEMENT
+    // =========================
+    loadQuestions();
 
-// Affichage bienvenue
-document.getElementById("welcome").innerText =
-    "Bonjour " + patient.nom + " 👋";
+    // =========================
+    // ENVOYER UNE QUESTION
+    // =========================
+    const form = document.getElementById("questionForm");
 
-// Liste des questions (simulation)
-let questions = [];
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
 
-// Ajouter question
-document.getElementById("questionForm").addEventListener("submit", function(e){
-    e.preventDefault();
+        const data = {
+            patientId: 1, // plus tard : dynamique via login
+            sujet: document.getElementById("subject").value,
+            message: document.getElementById("question").value
+        };
 
-    let subject = document.getElementById("subject").value;
-    let question = document.getElementById("question").value;
+        try {
+            const res = await fetch("http://localhost:3000/api/question", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
 
-    let newQuestion = {
-        subject,
-        question,
-        status: "En attente",
-        response: ""
-    };
+            const result = await res.json();
 
-    questions.push(newQuestion);
+            document.getElementById("message").innerText = result.message;
 
-    document.getElementById("message").innerText =
-        "Votre demande a été envoyée ✔";
+            form.reset();
 
-    document.getElementById("questionForm").reset();
+            loadQuestions();
 
-    renderQuestions();
+        } catch (error) {
+            console.error("Erreur:", error);
+            document.getElementById("message").innerText =
+                "Erreur lors de l'envoi";
+        }
+    });
+
 });
 
-// Affichage des questions
-function renderQuestions(){
-    let container = document.getElementById("questionsList");
-    container.innerHTML = "";
+// =========================
+// CHARGER QUESTIONS PATIENT
+// =========================
+async function loadQuestions() {
 
-    questions.forEach((q, index) => {
-        container.innerHTML += `
-            <div class="question">
-                <strong>${q.subject}</strong>
-                <p>${q.question}</p>
-                <div class="status">Statut : ${q.status}</div>
-            </div>
-        `;
-    });
+    try {
+        const res = await fetch("http://localhost:3000/api/questions");
+        const data = await res.json();
+
+        const container = document.getElementById("questionsList");
+        container.innerHTML = "";
+
+        data.forEach(q => {
+            container.innerHTML += `
+                <div class="question">
+                    <strong>${q.sujet}</strong>
+                    <p>${q.message}</p>
+
+                    <div class="status">
+                        Statut : ${q.status}
+                    </div>
+
+                    <hr>
+
+                    <p>
+                        <b>Réponse :</b> 
+                        ${q.reponse ? q.reponse : "Pas encore répondu"}
+                    </p>
+                </div>
+            `;
+        });
+
+    } catch (error) {
+        console.error("Erreur loadQuestions:", error);
+    }
 }
-

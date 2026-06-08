@@ -18,10 +18,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
 /* =========================
-   "DATABASE" TEMPORAIRE
-   (sera remplacée par MySQL)
+   FAKE DATABASE (TEMPORAIRE)
 ========================= */
-
 let patients = [];
 let questions = [];
 
@@ -31,66 +29,93 @@ let questions = [];
 
 /* --- INSCRIPTION PATIENT --- */
 app.post("/api/register", (req, res) => {
-    const patient = {
-        id: patients.length + 1,
-        nom: req.body.nom,
-        age: req.body.age,
-        sexe: req.body.sexe,
-        wilaya: req.body.wilaya,
-        telephone: req.body.telephone,
-        profession: req.body.profession,
-        maladies: req.body.maladies
-    };
+    try {
+        const { nom, age, sexe, wilaya, telephone, profession, maladies } = req.body;
 
-    patients.push(patient);
+        if (!nom || !age || !sexe) {
+            return res.status(400).json({ message: "Champs obligatoires manquants" });
+        }
 
-    res.json({
-        message: "Compte créé avec succès",
-        patient
-    });
+        const patient = {
+            id: patients.length + 1,
+            nom,
+            age,
+            sexe,
+            wilaya,
+            telephone,
+            profession,
+            maladies
+        };
+
+        patients.push(patient);
+
+        res.json({
+            message: "Compte créé avec succès",
+            patient
+        });
+
+    } catch (err) {
+        res.status(500).json({ message: "Erreur serveur" });
+    }
 });
 
 /* --- ENVOI QUESTION PATIENT --- */
 app.post("/api/question", (req, res) => {
-    const question = {
-        id: questions.length + 1,
-        patientId: req.body.patientId,
-        sujet: req.body.sujet,
-        message: req.body.message,
-        status: "En attente",
-        reponse: ""
-    };
+    try {
+        const { patientId, sujet, message } = req.body;
 
-    questions.push(question);
+        if (!sujet || !message) {
+            return res.status(400).json({ message: "Question invalide" });
+        }
 
-    res.json({
-        message: "Question envoyée",
-        question
-    });
+        const question = {
+            id: questions.length + 1,
+            patientId,
+            sujet,
+            message,
+            status: "En attente",
+            reponse: ""
+        };
+
+        questions.push(question);
+
+        res.json({
+            message: "Question envoyée",
+            question
+        });
+
+    } catch (err) {
+        res.status(500).json({ message: "Erreur serveur" });
+    }
 });
 
-/* --- GET QUESTIONS (DOCTEUR) --- */
+/* --- GET QUESTIONS (MEDECIN) --- */
 app.get("/api/questions", (req, res) => {
     res.json(questions);
 });
 
 /* --- REPONSE MEDECIN --- */
 app.post("/api/repondre", (req, res) => {
-    const { questionId, reponse } = req.body;
+    try {
+        const { questionId, reponse } = req.body;
 
-    const question = questions.find(q => q.id == questionId);
+        const question = questions.find(q => q.id == questionId);
 
-    if (!question) {
-        return res.status(404).json({ message: "Question introuvable" });
+        if (!question) {
+            return res.status(404).json({ message: "Question introuvable" });
+        }
+
+        question.reponse = reponse;
+        question.status = "Répondu";
+
+        res.json({
+            message: "Réponse enregistrée",
+            question
+        });
+
+    } catch (err) {
+        res.status(500).json({ message: "Erreur serveur" });
     }
-
-    question.reponse = reponse;
-    question.status = "Répondu";
-
-    res.json({
-        message: "Réponse enregistrée",
-        question
-    });
 });
 
 /* =========================

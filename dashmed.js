@@ -1,71 +1,99 @@
-// Simulation des questions patients (plus tard API + DB)
-let questions = [
-    {
-        patient: "Ahmed",
-        subject: "Douleurs thoraciques",
-        message: "J'ai des douleurs depuis 2 jours",
-        status: "En attente",
-        response: ""
-    },
-    {
-        patient: "Fatima",
-        subject: "Palpitations",
-        message: "Battements rapides du cœur",
-        status: "En attente",
-        response: ""
+let selectedQuestionId = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadQuestions();
+});
+
+
+// =========================
+// CHARGER QUESTIONS (API)
+// =========================
+async function loadQuestions() {
+    try {
+        const res = await fetch("http://localhost:3000/api/questions");
+        const questions = await res.json();
+
+        const container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        questions.forEach(q => {
+            container.innerHTML += `
+                <div class="card">
+                    <h3>Patient ID: ${q.patientId}</h3>
+
+                    <p><strong>Sujet :</strong> ${q.sujet}</p>
+                    <p>${q.message}</p>
+
+                    <div class="status">
+                        Statut : ${q.status}
+                    </div>
+
+                    <p><b>Réponse :</b> ${
+                        q.reponse ? q.reponse : "Pas encore répondu"
+                    }</p>
+
+                    <button class="btn" onclick="openModal(${q.id}, \`${q.message}\`)">
+                        Répondre
+                    </button>
+                </div>
+            `;
+        });
+
+    } catch (err) {
+        console.error("Erreur loadQuestions:", err);
     }
-];
-
-let selectedIndex = null;
-
-// Afficher questions
-function render(){
-    let container = document.getElementById("questionsContainer");
-    container.innerHTML = "";
-
-    questions.forEach((q, index) => {
-
-        container.innerHTML += `
-            <div class="card">
-                <h3>${q.patient}</h3>
-                <p><strong>Sujet :</strong> ${q.subject}</p>
-                <p>${q.message}</p>
-                <div class="status">Statut : ${q.status}</div>
-
-                <button class="btn" onclick="openModal(${index})">
-                    Répondre
-                </button>
-            </div>
-        `;
-    });
 }
 
-render();
 
-// Ouvrir modal
-function openModal(index){
-    selectedIndex = index;
+// =========================
+// OUVRIR MODAL
+// =========================
+function openModal(id, message) {
+    selectedQuestionId = id;
 
     document.getElementById("modal").classList.remove("hidden");
-
-    document.getElementById("questionText").innerText =
-        questions[index].message;
+    document.getElementById("questionText").innerText = message;
 }
 
-// Fermer modal
-function closeModal(){
+
+// =========================
+// FERMER MODAL
+// =========================
+function closeModal() {
     document.getElementById("modal").classList.add("hidden");
+    document.getElementById("responseText").value = "";
 }
 
-// Envoyer réponse
-function sendResponse(){
-    let response = document.getElementById("responseText").value;
 
-    questions[selectedIndex].response = response;
-    questions[selectedIndex].status = "Répondu";
+// =========================
+// ENVOYER RÉPONSE
+// =========================
+async function sendResponse() {
 
-    document.getElementById("responseText").value = "";
+    const response = document.getElementById("responseText").value;
 
-    closeModal();
-    render();
+    if (!response) return alert("Écris une réponse");
+
+    try {
+        const res = await fetch("http://localhost:3000/api/repondre", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                questionId: selectedQuestionId,
+                reponse: response
+            })
+        });
+
+        const result = await res.json();
+
+        alert(result.message);
+
+        closeModal();
+        loadQuestions();
+
+    } catch (err) {
+        console.error("Erreur sendResponse:", err);
+    }
 }
