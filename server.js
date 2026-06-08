@@ -39,7 +39,7 @@ let questions = [];
 /* --- INSCRIPTION PATIENT --- */
 app.post("/api/register", (req, res) => {
     try {
-        const { nom, age, sexe, wilaya, telephone, profession, maladies } = req.body;
+        const { nom, age, sexe, wilaya, profession, maladies } = req.body;
 
         if (!nom || !age || !sexe) {
             return res.status(400).json({ message: "Champs obligatoires manquants" });
@@ -51,7 +51,6 @@ app.post("/api/register", (req, res) => {
             age,
             sexe,
             wilaya,
-            telephone,
             profession,
             maladies
         };
