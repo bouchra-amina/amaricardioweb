@@ -25,7 +25,7 @@ document.getElementById("registerForm").addEventListener("submit", async functio
 
         if (res.ok) {
             // redirection vers login ou dashboard
-            window.location.href = "/login.html";
+            window.location.href = "/dashpat.html";
         }
 
     } catch (error) {
