@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 /* =========================
    STATIC FRONTEND
 ========================= */
-app.use(express.static(path.join(__dirname,"acc.html")));
+app.use(express.static(__dirname));
 
 /* =========================
    FAKE DATABASE (TEMPORAIRE)
