@@ -26,7 +26,8 @@ document.getElementById("registerForm").addEventListener("submit", async functio
         document.getElementById("message").innerText = result.message;
 
         if (res.ok) {
-            window.location.href = "/login.html";
+            localStorage.setItem("user", JSON.stringify(result.user));
+            window.location.href = "dashpat.html";
         }
 
     } catch (error) {
