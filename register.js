@@ -11,15 +11,7 @@ document.getElementById("registerForm").addEventListener("submit", async functio
         profession: document.querySelector('input[name="profession"]').value,
         medical_history: document.querySelector('textarea[name="medical_history"]').value
     };
-    const password = document.querySelector('input[name="password"]').value;
-    const confirm = document.querySelector('input[name="confirm_password"]').value;
-
-   if (password !== confirm) {
-        document.getElementById("message").innerText =
-          "Les mots de passe ne correspondent pas";
-    return;
-}
-
+  
     try {
         const res = await fetch("https://https://amaricardioweb-production.up.railway.app//api/register", {
             method: "POST",
