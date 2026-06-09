@@ -11,7 +11,7 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     };
 
     try {
-        const res = await fetch("https://ton-backend-url/api/register", {
+        const res = await fetch("https://https://amaricardioweb-production.up.railway.app//api/register", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
