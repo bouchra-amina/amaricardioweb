@@ -8,7 +8,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
 
     try {
 
-        const res = await fetch("https://TON-URL-RAILWAY/api/login", {
+        const res = await fetch("https://amaricardioweb-production.up.railway.app/api/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
