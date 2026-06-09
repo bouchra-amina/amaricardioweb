@@ -11,7 +11,6 @@ document.getElementById("registerForm").addEventListener("submit", async functio
         profession: document.querySelector('input[name="profession"]').value,
         medical_history: document.querySelector('textarea[name="medical_history"]').value
     };
-
     try {
         const res = await fetch("https://amaricardioweb-production.up.railway.app/api/register", {
             method: "POST",
