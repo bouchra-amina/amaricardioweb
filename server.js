@@ -12,6 +12,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /* =========================
+   SERVE FRONTEND (IMPORTANT)
+   👉 permet d’ouvrir register.html / login.html
+========================= */
+app.use(express.static(__dirname));
+
+/* =========================
    FAKE DATABASE (MEMOIRE)
 ========================= */
 let users = [];
@@ -33,14 +39,12 @@ app.post("/api/register", (req, res) => {
             medical_history
         } = req.body;
 
-        // Vérification champs obligatoires
         if (!full_name || !email || !password || !age || !gender) {
             return res.status(400).json({
                 message: "Champs obligatoires manquants"
             });
         }
 
-        // Vérifier si email existe déjà
         const existingUser = users.find(u => u.email === email);
         if (existingUser) {
             return res.status(409).json({
@@ -52,7 +56,7 @@ app.post("/api/register", (req, res) => {
             id: users.length + 1,
             full_name,
             email,
-            password, // (simple version sans bcrypt)
+            password,
             age,
             gender,
             wilaya,
@@ -68,7 +72,7 @@ app.post("/api/register", (req, res) => {
         });
 
     } catch (err) {
-        console.error(err);
+        console.error("REGISTER ERROR:", err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 });
@@ -106,7 +110,7 @@ app.post("/api/login", (req, res) => {
         });
 
     } catch (err) {
-        console.error(err);
+        console.error("LOGIN ERROR:", err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 });
@@ -141,6 +145,7 @@ app.post("/api/question", (req, res) => {
         });
 
     } catch (err) {
+        console.error("QUESTION ERROR:", err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 });
@@ -176,6 +181,7 @@ app.post("/api/repondre", (req, res) => {
         });
 
     } catch (err) {
+        console.error("RESPONSE ERROR:", err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 });
