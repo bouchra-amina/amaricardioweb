@@ -1,20 +1,8 @@
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
 
 const app = express();
-
-const PORT = process.env.PORT || 3002;
-
-const { Pool } = require("pg");
-
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
-
+const PORT = process.env.PORT || 3000;
 
 /* =========================
    MIDDLEWARE
@@ -24,58 +12,116 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /* =========================
-   STATIC FRONTEND
+   FAKE DATABASE (MEMOIRE)
 ========================= */
-app.use(express.static(__dirname));
-
-/* =========================
-   FAKE DATABASE (TEMPORAIRE)
-========================= */
-let patients = [];
+let users = [];
 let questions = [];
 
 /* =========================
-   ROUTES
+   REGISTER
 ========================= */
-
-/* --- INSCRIPTION PATIENT --- */
 app.post("/api/register", (req, res) => {
     try {
-        const { nom, age, sexe, wilaya, profession, maladies } = req.body;
-
-        if (!nom || !age || !sexe) {
-            return res.status(400).json({ message: "Champs obligatoires manquants" });
-        }
-
-        const patient = {
-            id: patients.length + 1,
-            nom,
+        const {
+            full_name,
+            email,
+            password,
             age,
-            sexe,
+            gender,
             wilaya,
             profession,
-            maladies
+            medical_history
+        } = req.body;
+
+        // Vérification champs obligatoires
+        if (!full_name || !email || !password || !age || !gender) {
+            return res.status(400).json({
+                message: "Champs obligatoires manquants"
+            });
+        }
+
+        // Vérifier si email existe déjà
+        const existingUser = users.find(u => u.email === email);
+        if (existingUser) {
+            return res.status(409).json({
+                message: "Email déjà utilisé"
+            });
+        }
+
+        const user = {
+            id: users.length + 1,
+            full_name,
+            email,
+            password, // (simple version sans bcrypt)
+            age,
+            gender,
+            wilaya,
+            profession,
+            medical_history
         };
 
-        patients.push(patient);
+        users.push(user);
 
-        res.json({
+        res.status(201).json({
             message: "Compte créé avec succès",
-            patient
+            user
         });
 
     } catch (err) {
+        console.error(err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 });
 
-/* --- ENVOI QUESTION PATIENT --- */
+/* =========================
+   LOGIN
+========================= */
+app.post("/api/login", (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({
+                message: "Email et mot de passe requis"
+            });
+        }
+
+        const user = users.find(u => u.email === email);
+
+        if (!user) {
+            return res.status(404).json({
+                message: "Utilisateur introuvable"
+            });
+        }
+
+        if (user.password !== password) {
+            return res.status(401).json({
+                message: "Mot de passe incorrect"
+            });
+        }
+
+        res.json({
+            message: "Connexion réussie",
+            user
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+});
+
+/* =========================
+   ENVOI QUESTION PATIENT
+========================= */
 app.post("/api/question", (req, res) => {
     try {
         const { patientId, sujet, message } = req.body;
 
-        if (!sujet || !message) {
-            return res.status(400).json({ message: "Question invalide" });
+        if (!patientId || !sujet || !message) {
+            return res.status(400).json({
+                message: "Données invalides"
+            });
         }
 
         const question = {
@@ -89,7 +135,7 @@ app.post("/api/question", (req, res) => {
 
         questions.push(question);
 
-        res.json({
+        res.status(201).json({
             message: "Question envoyée",
             question
         });
@@ -99,12 +145,16 @@ app.post("/api/question", (req, res) => {
     }
 });
 
-/* --- GET QUESTIONS (MEDECIN) --- */
+/* =========================
+   GET QUESTIONS (MEDECIN)
+========================= */
 app.get("/api/questions", (req, res) => {
     res.json(questions);
 });
 
-/* --- REPONSE MEDECIN --- */
+/* =========================
+   REPONSE MEDECIN
+========================= */
 app.post("/api/repondre", (req, res) => {
     try {
         const { questionId, reponse } = req.body;
@@ -112,7 +162,9 @@ app.post("/api/repondre", (req, res) => {
         const question = questions.find(q => q.id == questionId);
 
         if (!question) {
-            return res.status(404).json({ message: "Question introuvable" });
+            return res.status(404).json({
+                message: "Question introuvable"
+            });
         }
 
         question.reponse = reponse;
