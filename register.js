@@ -7,8 +7,18 @@ document.getElementById("registerForm").addEventListener("submit", async functio
         password: document.querySelector('input[name="password"]').value,
         age: document.querySelector('input[name="age"]').value,
         gender: document.querySelector('select[name="gender"]').value,
-        wilaya: document.querySelector('input[name="wilaya"]').value
+        wilaya: document.querySelector('input[name="wilaya"]').value,
+        profession: document.querySelector('input[name="profession"]').value,
+        medical_history: document.querySelector('textarea[name="medical_history"]').value
     };
+    const password = document.querySelector('input[name="password"]').value;
+    const confirm = document.querySelector('input[name="confirm_password"]').value;
+
+   if (password !== confirm) {
+        document.getElementById("message").innerText =
+          "Les mots de passe ne correspondent pas";
+    return;
+}
 
     try {
         const res = await fetch("https://https://amaricardioweb-production.up.railway.app//api/register", {
@@ -25,7 +35,7 @@ document.getElementById("registerForm").addEventListener("submit", async functio
 
         if (res.ok) {
             // redirection vers login ou dashboard
-            window.location.href = "/dashpat.html";
+            window.location.href = " /login.html";
         }
 
     } catch (error) {
