@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = "/login.html";
         return;
     }
-
     const userId = user.id;
 
     const form = document.getElementById("questionForm");
