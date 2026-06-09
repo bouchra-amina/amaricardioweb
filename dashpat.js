@@ -1,19 +1,16 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    const userId = localStorage.getItem("userId");
+    const user = JSON.parse(localStorage.getItem("user"));
 
-    if (!userId) {
+    if (!user) {
         window.location.href = "/login.html";
         return;
     }
 
+    const userId = user.id;
+
     const form = document.getElementById("questionForm");
     const messageBox = document.getElementById("message");
-
-    if (!form) {
-        console.error("questionForm introuvable");
-        return;
-    }
 
     loadQuestions(userId);
 
@@ -48,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.reset();
                 loadQuestions(userId);
             } else {
-                messageBox.innerText = result.message || "Erreur serveur";
+                messageBox.innerText = result.message;
             }
 
         } catch (error) {
@@ -65,16 +62,16 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadQuestions(userId) {
 
     try {
-        const res = await fetch(`https://amaricardioweb-production.up.railway.app/api/questions/${userId}`);
-
-        if (!res.ok) throw new Error("API error");
+        const res = await fetch("https://amaricardioweb-production.up.railway.app/api/questions");
 
         const data = await res.json();
+
+        const filtered = data.filter(q => q.patientId == userId);
 
         const container = document.getElementById("questionsList");
         container.innerHTML = "";
 
-        data.forEach(q => {
+        filtered.forEach(q => {
             container.innerHTML += `
                 <div class="question">
                     <strong>${q.sujet}</strong>
