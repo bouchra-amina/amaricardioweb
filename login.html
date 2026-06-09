@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion | Cabinet Dr Amari</title>
+
+    <link rel="stylesheet" href="register.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="logocard.jpg">
+</head>
+<body>
+
+<div class="page">
+
+    <!-- PANNEAU GAUCHE -->
+    <div class="left-panel">
+
+        <h1>Connexion à votre espace patient</h1>
+
+        <p>
+            Connectez-vous à votre espace personnel afin de consulter vos informations,
+            suivre vos demandes médicales et communiquer avec le Dr Amari.
+        </p>
+
+        <div class="info-box">
+            ✔ Accès sécurisé à votre dossier<br>
+            ✔ Historique de vos demandes<br>
+            ✔ Réponse du médecin<br>
+            ✔ Protection de vos données personnelles
+        </div>
+
+    </div>
+
+    <!-- FORMULAIRE -->
+    <div class="card">
+
+        <h2>Se connecter</h2>
+
+        <form id="loginForm">
+
+            <label>Email - البريد الإلكتروني</label>
+            <input
+                type="email"
+                name="email"
+                placeholder="Entrez votre email"
+                required
+            >
+
+            <label>Mot de passe - كلمة المرور</label>
+            <input
+                type="password"
+                name="password"
+                placeholder="Entrez votre mot de passe"
+                required
+            >
+
+            <button type="submit">
+                Se connecter - تسجيل الدخول
+            </button>
+
+        </form>
+
+        <p id="message"></p>
+
+        <div style="margin-top:15px;text-align:center;">
+            Vous n'avez pas de compte ?
+            <a href="register.html">Créer un compte</a>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="login.js"></script>
+
+</body>
+</html>
