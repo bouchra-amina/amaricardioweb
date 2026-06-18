@@ -9,30 +9,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const userId = user.id;
 
-    // 👤 Welcome message dynamique
     document.getElementById("welcome").innerText =
         `Bienvenue, ${user.full_name}`;
 
     const form = document.getElementById("questionForm");
-    const messageBox = document.getElementById("message");
 
     loadQuestions(userId);
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const sujet = document.getElementById("subject").value.trim();
-        const message = document.getElementById("question").value.trim();
+        const subject = document.getElementById("subject").value.trim();
+        const question = document.getElementById("question").value.trim();
 
-        if (!sujet || !message) {
+        if (!subject || !question) {
             showToast("Veuillez remplir tous les champs ❌", "error");
             return;
         }
 
         const data = {
-            patientId: userId,
-            sujet,
-            message
+            patients_id: userId,
+            subject,
+            question
         };
 
         try {
@@ -70,7 +68,8 @@ async function loadQuestions(userId) {
 
         const data = await res.json();
 
-        const filtered = data.filter(q => q.patientId == userId);
+        // filtrage local (OK temporaire, mais mieux côté backend)
+        const filtered = data.filter(q => q.patients_id == userId);
 
         const container = document.getElementById("questionsList");
         container.innerHTML = "";
@@ -78,10 +77,10 @@ async function loadQuestions(userId) {
         filtered.forEach(q => {
             container.innerHTML += `
                 <div class="question">
-                    <strong>${q.sujet}</strong>
-                    <p>${q.message}</p>
+                    <strong>${q.subject}</strong>
+                    <p>${q.question}</p>
                     <small>Status: ${q.status}</small>
-                    <p><b>Réponse:</b> ${q.reponse || "Pas encore répondu"}</p>
+                    <p><b>Réponse:</b> ${q.response || "Pas encore répondu"}</p>
                 </div>
             `;
         });
@@ -92,7 +91,7 @@ async function loadQuestions(userId) {
 }
 
 // =========================
-// POPUP NOTIFICATION (TOAST)
+// TOAST
 // =========================
 function showToast(message, type) {
 
@@ -109,17 +108,10 @@ function showToast(message, type) {
     toast.style.zIndex = "9999";
     toast.style.fontSize = "14px";
     toast.style.boxShadow = "0 10px 25px rgba(0,0,0,0.15)";
-    toast.style.animation = "fadeIn 0.3s ease";
 
-    if (type === "success") {
-        toast.style.background = "#16a34a";
-    } else {
-        toast.style.background = "#dc2626";
-    }
+    toast.style.background = type === "success" ? "#16a34a" : "#dc2626";
 
     document.body.appendChild(toast);
 
-    setTimeout(() => {
-        toast.remove();
-    }, 2500);
+    setTimeout(() => toast.remove(), 2500);
 }
