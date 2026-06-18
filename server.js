@@ -12,13 +12,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /* =========================
-   SERVE FRONTEND (IMPORTANT)
-   👉 permet d’ouvrir register.html / login.html
+   SERVE FRONTEND
 ========================= */
 app.use(express.static(__dirname));
 
 /* =========================
-   FAKE DATABASE (MEMOIRE)
+   FAKE DATABASE (TEMP)
+   ⚠️ à remplacer par PostgreSQL plus tard
 ========================= */
 let users = [];
 let questions = [];
@@ -40,16 +40,12 @@ app.post("/api/register", (req, res) => {
         } = req.body;
 
         if (!full_name || !email || !password || !age || !gender) {
-            return res.status(400).json({
-                message: "Champs obligatoires manquants"
-            });
+            return res.status(400).json({ message: "Champs obligatoires manquants" });
         }
 
         const existingUser = users.find(u => u.email === email);
         if (existingUser) {
-            return res.status(409).json({
-                message: "Email déjà utilisé"
-            });
+            return res.status(409).json({ message: "Email déjà utilisé" });
         }
 
         const user = {
@@ -72,7 +68,7 @@ app.post("/api/register", (req, res) => {
         });
 
     } catch (err) {
-        console.error("REGISTER ERROR:", err);
+        console.error(err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 });
@@ -85,23 +81,17 @@ app.post("/api/login", (req, res) => {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({
-                message: "Email et mot de passe requis"
-            });
+            return res.status(400).json({ message: "Email et mot de passe requis" });
         }
 
         const user = users.find(u => u.email === email);
 
         if (!user) {
-            return res.status(404).json({
-                message: "Utilisateur introuvable"
-            });
+            return res.status(404).json({ message: "Utilisateur introuvable" });
         }
 
         if (user.password !== password) {
-            return res.status(401).json({
-                message: "Mot de passe incorrect"
-            });
+            return res.status(401).json({ message: "Mot de passe incorrect" });
         }
 
         res.json({
@@ -110,51 +100,67 @@ app.post("/api/login", (req, res) => {
         });
 
     } catch (err) {
-        console.error("LOGIN ERROR:", err);
+        console.error(err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 });
 
 /* =========================
    ENVOI QUESTION PATIENT
+   (adapté à patients_questions)
 ========================= */
 app.post("/api/question", (req, res) => {
     try {
-        const { patientId, sujet, message } = req.body;
+        const { patients_id, subject, question } = req.body;
 
-        if (!patientId || !sujet || !message) {
-            return res.status(400).json({
-                message: "Données invalides"
-            });
+        if (!patients_id || !question) {
+            return res.status(400).json({ message: "Données invalides" });
         }
 
-        const question = {
+        const newQuestion = {
             id: questions.length + 1,
-            patientId,
-            sujet,
-            message,
-            status: "En attente",
-            reponse: ""
+            patients_id,
+            subject: subject || null,
+            question,
+            status: "pending",
+            response: null,
+            created_at: new Date()
         };
 
-        questions.push(question);
+        questions.push(newQuestion);
 
         res.status(201).json({
             message: "Question envoyée",
-            question
+            question: newQuestion
         });
 
     } catch (err) {
-        console.error("QUESTION ERROR:", err);
+        console.error(err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 });
 
 /* =========================
    GET QUESTIONS (MEDECIN)
+   ✔ avec nom patient simulé
 ========================= */
 app.get("/api/questions", (req, res) => {
-    res.json(questions);
+    try {
+        const result = questions.map(q => {
+            const patient = users.find(u => u.id === q.patients_id);
+
+            return {
+                ...q,
+                full_name: patient ? patient.full_name : "Inconnu"
+            };
+        });
+
+        res.json(result);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
 });
 
 /* =========================
@@ -162,18 +168,16 @@ app.get("/api/questions", (req, res) => {
 ========================= */
 app.post("/api/repondre", (req, res) => {
     try {
-        const { questionId, reponse } = req.body;
+        const { questionId, response } = req.body;
 
         const question = questions.find(q => q.id == questionId);
 
         if (!question) {
-            return res.status(404).json({
-                message: "Question introuvable"
-            });
+            return res.status(404).json({ message: "Question introuvable" });
         }
 
-        question.reponse = reponse;
-        question.status = "Répondu";
+        question.response = response;
+        question.status = "answered";
 
         res.json({
             message: "Réponse enregistrée",
@@ -181,7 +185,7 @@ app.post("/api/repondre", (req, res) => {
         });
 
     } catch (err) {
-        console.error("RESPONSE ERROR:", err);
+        console.error(err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 });
