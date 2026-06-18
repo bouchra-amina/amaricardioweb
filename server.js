@@ -17,8 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
 /* =========================
-   FAKE DATABASE (TEMP)
-   ⚠️ à remplacer par PostgreSQL plus tard
+   MEMORY DB (TEMP)
 ========================= */
 let users = [];
 let questions = [];
@@ -27,167 +26,121 @@ let questions = [];
    REGISTER
 ========================= */
 app.post("/api/register", (req, res) => {
-    try {
-        const {
-            full_name,
-            email,
-            password,
-            age,
-            gender,
-            wilaya,
-            profession,
-            medical_history
-        } = req.body;
+    const { full_name, email, password, age, gender } = req.body;
 
-        if (!full_name || !email || !password || !age || !gender) {
-            return res.status(400).json({ message: "Champs obligatoires manquants" });
-        }
-
-        const existingUser = users.find(u => u.email === email);
-        if (existingUser) {
-            return res.status(409).json({ message: "Email déjà utilisé" });
-        }
-
-        const user = {
-            id: users.length + 1,
-            full_name,
-            email,
-            password,
-            age,
-            gender,
-            wilaya,
-            profession,
-            medical_history
-        };
-
-        users.push(user);
-
-        res.status(201).json({
-            message: "Compte créé avec succès",
-            user
-        });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Erreur serveur" });
+    if (!full_name || !email || !password || !age || !gender) {
+        return res.status(400).json({ message: "Champs obligatoires manquants" });
     }
+
+    const exists = users.find(u => u.email === email);
+    if (exists) {
+        return res.status(409).json({ message: "Email déjà utilisé" });
+    }
+
+    const user = {
+        id: users.length + 1,
+        full_name,
+        email,
+        password,
+        age,
+        gender
+    };
+
+    users.push(user);
+
+    res.status(201).json({
+        message: "Compte créé avec succès",
+        user
+    });
 });
 
 /* =========================
    LOGIN
 ========================= */
 app.post("/api/login", (req, res) => {
-    try {
-        const { email, password } = req.body;
+    const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email et mot de passe requis" });
-        }
+    const user = users.find(u => u.email === email);
 
-        const user = users.find(u => u.email === email);
-
-        if (!user) {
-            return res.status(404).json({ message: "Utilisateur introuvable" });
-        }
-
-        if (user.password !== password) {
-            return res.status(401).json({ message: "Mot de passe incorrect" });
-        }
-
-        res.json({
-            message: "Connexion réussie",
-            user
-        });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Erreur serveur" });
+    if (!user) {
+        return res.status(404).json({ message: "Utilisateur introuvable" });
     }
+
+    if (user.password !== password) {
+        return res.status(401).json({ message: "Mot de passe incorrect" });
+    }
+
+    res.json({
+        message: "Connexion réussie",
+        user
+    });
 });
 
 /* =========================
-   ENVOI QUESTION PATIENT
-   (adapté à patients_questions)
+   CREATE QUESTION
 ========================= */
 app.post("/api/question", (req, res) => {
-    try {
-        const { patients_id, subject, question } = req.body;
+    const { patients_id, subject, question } = req.body;
 
-        if (!patients_id || !question) {
-            return res.status(400).json({ message: "Données invalides" });
-        }
-
-        const newQuestion = {
-            id: questions.length + 1,
-            patients_id,
-            subject: subject || null,
-            question,
-            status: "pending",
-            response: null,
-            created_at: new Date()
-        };
-
-        questions.push(newQuestion);
-
-        res.status(201).json({
-            message: "Question envoyée",
-            question: newQuestion
-        });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Erreur serveur" });
+    if (!patients_id || !question) {
+        return res.status(400).json({ message: "Données invalides" });
     }
+
+    const newQuestion = {
+        id: questions.length + 1,
+        patients_id,
+        subject: subject || "",
+        question,
+        status: "pending",
+        response: null,
+        created_at: new Date()
+    };
+
+    questions.push(newQuestion);
+
+    res.status(201).json({
+        message: "Question envoyée",
+        question: newQuestion
+    });
 });
 
 /* =========================
-   GET QUESTIONS (MEDECIN)
-   ✔ avec nom patient simulé
+   GET QUESTIONS (DOCTOR)
 ========================= */
 app.get("/api/questions", (req, res) => {
-    try {
-        const result = questions.map(q => {
-            const patient = users.find(u => u.id === q.patients_id);
 
-            return {
-                ...q,
-                full_name: patient ? patient.full_name : "Inconnu"
-            };
-        });
+    const result = questions.map(q => {
+        const patient = users.find(u => u.id === q.patients_id);
 
-        res.json(result);
+        return {
+            ...q,
+            full_name: patient ? patient.full_name : "Inconnu"
+        };
+    });
 
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Erreur serveur" });
-    }
+    res.json(result);
 });
 
 /* =========================
-   REPONSE MEDECIN
+   ANSWER QUESTION
 ========================= */
 app.post("/api/repondre", (req, res) => {
-    try {
-        const { questionId, response } = req.body;
 
-        const question = questions.find(q => q.id == questionId);
+    const { questionId, response } = req.body;
 
-        if (!question) {
-            return res.status(404).json({ message: "Question introuvable" });
-        }
+    const question = questions.find(q => q.id === Number(questionId));
 
-        question.response = response;
-        question.status = "answered";
-
-        res.json({
-            message: "Réponse enregistrée",
-            question
-        });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Erreur serveur" });
+    if (!question) {
+        return res.status(404).json({ message: "Question introuvable" });
     }
+
+    question.response = response;
+    question.status = "answered";
+
+    res.json({
+        message: "Réponse enregistrée",
+        question
+    });
 });
 
 /* =========================
