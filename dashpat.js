@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // =========================
-// LOAD QUESTIONS
+// LOAD QUESTIONS (OPTIMISÉ)
 // =========================
 async function loadQuestions(userId) {
 
@@ -68,30 +68,48 @@ async function loadQuestions(userId) {
 
         const data = await res.json();
 
-        // filtrage local (OK temporaire, mais mieux côté backend)
-        const filtered = data.filter(q => q.patients_id == userId);
-
         const container = document.getElementById("questionsList");
         container.innerHTML = "";
 
-        filtered.forEach(q => {
+        // filtrage propre côté frontend (OK pour ton projet actuel)
+        const myQuestions = data.filter(q => q.patients_id === userId);
+
+        if (myQuestions.length === 0) {
+            container.innerHTML = `<p>Aucune question pour le moment.</p>`;
+            return;
+        }
+
+        myQuestions.forEach(q => {
+
+            const shortQuestion = q.question.length > 120
+                ? q.question.substring(0, 120) + "..."
+                : q.question;
+
             container.innerHTML += `
-                <div class="question">
-                    <strong>${q.subject}</strong>
-                    <p>${q.question}</p>
-                    <small>Status: ${q.status}</small>
-                    <p><b>Réponse:</b> ${q.response || "Pas encore répondu"}</p>
+                <div class="question-card">
+                    <div class="question-header">
+                        <strong>${q.subject || "Sans sujet"}</strong>
+                        <span class="status ${q.status}">${q.status}</span>
+                    </div>
+
+                    <p>${shortQuestion}</p>
+
+                    <div class="response">
+                        <b>Réponse :</b>
+                        <p>${q.response || "Pas encore répondu"}</p>
+                    </div>
                 </div>
             `;
         });
 
     } catch (error) {
-        console.error(error);
+        console.error("Erreur loadQuestions:", error);
+        showToast("Erreur chargement des questions", "error");
     }
 }
 
 // =========================
-// TOAST
+// TOAST NOTIFICATION
 // =========================
 function showToast(message, type) {
 
@@ -108,10 +126,13 @@ function showToast(message, type) {
     toast.style.zIndex = "9999";
     toast.style.fontSize = "14px";
     toast.style.boxShadow = "0 10px 25px rgba(0,0,0,0.15)";
+    toast.style.transition = "0.3s ease";
 
     toast.style.background = type === "success" ? "#16a34a" : "#dc2626";
 
     document.body.appendChild(toast);
 
-    setTimeout(() => toast.remove(), 2500);
+    setTimeout(() => {
+        toast.remove();
+    }, 2500);
 }
