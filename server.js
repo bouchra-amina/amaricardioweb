@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const { Pool } = require("pg");
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -10,137 +11,180 @@ const PORT = process.env.PORT || 3002;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-/* =========================
-   SERVE FRONTEND
-========================= */
 app.use(express.static(__dirname));
 
 /* =========================
-   MEMORY DB (TEMP)
+   POSTGRES CONNECTION
 ========================= */
-let users = [];
-let questions = [];
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
+
+/* =========================
+   TEST DB
+========================= */
+app.get("/test-db", async (req, res) => {
+    try {
+        const result = await pool.query("SELECT NOW()");
+        res.json({
+            message: "DB CONNECTÉE ✅",
+            time: result.rows[0]
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: "DB NON CONNECTÉE ❌",
+            error: err.message
+        });
+    }
+});
 
 /* =========================
    REGISTER
 ========================= */
-app.post("/api/register", (req, res) => {
-    const { full_name, email, password, age, gender } = req.body;
+app.post("/api/register", async (req, res) => {
+    try {
+        const {
+            full_name,
+            email,
+            password,
+            age,
+            gender
+        } = req.body;
 
-    if (!full_name || !email || !password || !age || !gender) {
-        return res.status(400).json({ message: "Champs obligatoires manquants" });
+        const check = await pool.query(
+            "SELECT * FROM patients WHERE email = $1",
+            [email]
+        );
+
+        if (check.rows.length > 0) {
+            return res.status(409).json({ message: "Email déjà utilisé" });
+        }
+
+        const result = await pool.query(
+            `INSERT INTO patients (full_name, email, password, age, gender)
+             VALUES ($1,$2,$3,$4,$5)
+             RETURNING *`,
+            [full_name, email, password, age, gender]
+        );
+
+        res.json({
+            message: "Compte créé",
+            user: result.rows[0]
+        });
+
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
-
-    const exists = users.find(u => u.email === email);
-    if (exists) {
-        return res.status(409).json({ message: "Email déjà utilisé" });
-    }
-
-    const user = {
-        id: users.length + 1,
-        full_name,
-        email,
-        password,
-        age,
-        gender
-    };
-
-    users.push(user);
-
-    res.status(201).json({
-        message: "Compte créé avec succès",
-        user
-    });
 });
 
 /* =========================
    LOGIN
 ========================= */
-app.post("/api/login", (req, res) => {
-    const { email, password } = req.body;
+app.post("/api/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
 
-    const user = users.find(u => u.email === email);
+        const result = await pool.query(
+            "SELECT * FROM patients WHERE email=$1",
+            [email]
+        );
 
-    if (!user) {
-        return res.status(404).json({ message: "Utilisateur introuvable" });
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: "Utilisateur introuvable" });
+        }
+
+        const user = result.rows[0];
+
+        if (user.password !== password) {
+            return res.status(401).json({ message: "Mot de passe incorrect" });
+        }
+
+        res.json({
+            message: "Connexion réussie",
+            user
+        });
+
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
-
-    if (user.password !== password) {
-        return res.status(401).json({ message: "Mot de passe incorrect" });
-    }
-
-    res.json({
-        message: "Connexion réussie",
-        user
-    });
 });
 
 /* =========================
    CREATE QUESTION
 ========================= */
-app.post("/api/question", (req, res) => {
-    const { patients_id, subject, question } = req.body;
+app.post("/api/question", async (req, res) => {
+    try {
+        const { patients_id, subject, question } = req.body;
 
-    if (!patients_id || !question) {
-        return res.status(400).json({ message: "Données invalides" });
+        const result = await pool.query(
+            `INSERT INTO patients_questions (patients_id, subject, question, status, response)
+             VALUES ($1,$2,$3,'pending',NULL)
+             RETURNING *`,
+            [patients_id, subject, question]
+        );
+
+        res.json({
+            message: "Question envoyée",
+            question: result.rows[0]
+        });
+
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
-
-    const newQuestion = {
-        id: questions.length + 1,
-        patients_id,
-        subject: subject || "",
-        question,
-        status: "pending",
-        response: null,
-        created_at: new Date()
-    };
-
-    questions.push(newQuestion);
-
-    res.status(201).json({
-        message: "Question envoyée",
-        question: newQuestion
-    });
 });
 
 /* =========================
    GET QUESTIONS (DOCTOR)
+   JOIN PATIENTS
 ========================= */
-app.get("/api/questions", (req, res) => {
+app.get("/api/questions", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                q.id,
+                q.patients_id,
+                q.subject,
+                q.question,
+                q.status,
+                q.response,
+                q.created_at,
+                p.full_name
+            FROM patients_questions q
+            JOIN patients p ON p.id = q.patients_id
+            ORDER BY q.id DESC
+        `);
 
-    const result = questions.map(q => {
-        const patient = users.find(u => u.id === q.patients_id);
+        res.json(result.rows);
 
-        return {
-            ...q,
-            full_name: patient ? patient.full_name : "Inconnu"
-        };
-    });
-
-    res.json(result);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
 });
 
 /* =========================
    ANSWER QUESTION
 ========================= */
-app.post("/api/repondre", (req, res) => {
+app.post("/api/repondre", async (req, res) => {
+    try {
+        const { questionId, response } = req.body;
 
-    const { questionId, response } = req.body;
+        const result = await pool.query(
+            `UPDATE patients_questions
+             SET response=$1, status='answered'
+             WHERE id=$2
+             RETURNING *`,
+            [response, questionId]
+        );
 
-    const question = questions.find(q => q.id === Number(questionId));
+        res.json({
+            message: "Réponse enregistrée",
+            question: result.rows[0]
+        });
 
-    if (!question) {
-        return res.status(404).json({ message: "Question introuvable" });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
-
-    question.response = response;
-    question.status = "answered";
-
-    res.json({
-        message: "Réponse enregistrée",
-        question
-    });
 });
 
 /* =========================
