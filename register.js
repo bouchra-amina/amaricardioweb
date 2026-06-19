@@ -6,7 +6,7 @@ document.getElementById("registerForm").addEventListener("submit", async functio
         email: document.querySelector('input[name="email"]').value,
         password: document.querySelector('input[name="password"]').value,
         age: document.querySelector('input[name="age"]').value,
-        gender: document.querySelector('select[name="gender"]').value,
+        sexe: document.querySelector('select[name="sexe"]').value,
         wilaya: document.querySelector('input[name="wilaya"]').value,
         profession: document.querySelector('input[name="profession"]').value,
         medical_history: document.querySelector('textarea[name="medical_history"]').value
