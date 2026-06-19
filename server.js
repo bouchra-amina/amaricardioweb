@@ -44,12 +44,16 @@ app.get("/test-db", async (req, res) => {
 ========================= */
 app.post("/api/register", async (req, res) => {
     try {
+        // Ajout de wilaya, profession, maladies depuis votre formulaire
         const {
             full_name,
             email,
             password,
             age,
-            gender
+            sexe,
+            wilaya,
+            profession,
+            maladies
         } = req.body;
 
         const check = await pool.query(
@@ -61,11 +65,12 @@ app.post("/api/register", async (req, res) => {
             return res.status(409).json({ message: "Email déjà utilisé" });
         }
 
+        // Modification pour utiliser les colonnes de votre table Postgres : nom, sexe, wilaya, profession, maladies
         const result = await pool.query(
-            `INSERT INTO patients (full_name, email, password, age, gender)
-             VALUES ($1,$2,$3,$4,$5)
+            `INSERT INTO patients (nom, email, password, age, sexe, wilaya, profession, maladies)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
              RETURNING *`,
-            [full_name, email, password, age, gender]
+            [full_name, email, password, age, gender, wilaya || null, profession || null, maladies || null]
         );
 
         res.json({
@@ -140,6 +145,7 @@ app.post("/api/question", async (req, res) => {
 ========================= */
 app.get("/api/questions", async (req, res) => {
     try {
+        // Changement de p.full_name à p.nom pour correspondre à votre table
         const result = await pool.query(`
             SELECT 
                 q.id,
@@ -149,7 +155,7 @@ app.get("/api/questions", async (req, res) => {
                 q.status,
                 q.response,
                 q.created_at,
-                p.full_name
+                p.nom
             FROM patients_questions q
             JOIN patients p ON p.id = q.patients_id
             ORDER BY q.id DESC
