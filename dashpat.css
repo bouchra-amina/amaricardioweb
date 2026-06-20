@@ -1,116 +1,226 @@
+/* =========================
+   BASICS
+========================= */
 *{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Poppins',sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
 }
 
 body{
-    background:#f8fbff;
-    color:#1f2937;
-}
-
-/* HEADER */
-header{
-    background:white;
-    padding:15px 0;
-    box-shadow:0 2px 15px rgba(0,0,0,0.05);
+    background: #f8fbff;
+    color: #1f2937;
 }
 
 .container{
-    width:90%;
-    max-width:1100px;
-    margin:auto;
+    width: 90%;
+    max-width: 1100px;
+    margin: auto;
+}
+
+/* =========================
+   HEADER
+========================= */
+header{
+    background: white;
+    padding: 15px 0;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
 }
 
 header .container{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 header h2{
-    color:#0F4C81;
+    color: #0F4C81;
 }
 
 .logout{
-    text-decoration:none;
-    color:white;
-    background:#0F4C81;
-    padding:10px 18px;
-    border-radius:10px;
-}
-
-/* WELCOME */
-.welcome-box{
-    margin-top:30px;
-    padding:20px;
-}
-
-.welcome-box h1{
-    color:#0F4C81;
-}
-.welcome-box { /* Remplace .welcome-box par le vrai nom de ta classe si nécessaire */
-    background-color: #0b5fa5; /* Ta couleur bleue actuelle */
+    text-decoration: none;
     color: white;
-    padding: 20px;
-    border-radius: 8px;
-    
-    /* 🛠️ CE QU'IL FAUT AJOUTER POUR CENTRER LE TEXTE : */
-    display: flex;
-    justify-content: center; /* Centre horizontalement */
-    align-items: center;     /* Centre verticalement */
-    text-align: center;      /* Utile si le texte revient à la ligne */
+    background: #0F4C81;
+    padding: 10px 18px;
+    border-radius: 10px;
+    transition: background 0.2s;
 }
 
-/* CARD */
+.logout:hover {
+    background: #1e6fb7;
+}
+
+/* =========================
+   WELCOME BOX (FUSIONNÉE ET CENTRÉE)
+========================= */
+.welcome-box {
+    background: linear-gradient(135deg, #0F4C81, #1e6fb7);
+    color: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-top: 25px;
+    
+    /* Centrage parfait des éléments à l'intérieur */
+    display: flex;
+    flex-direction: column; /* Force le H1 et le texte à s'empiler verticalement */
+    justify-content: center; /* Centre verticalement */
+    align-items: center;     /* Centre horizontalement */
+    text-align: center;
+}
+
+.welcome-box h1 {
+    color: white;
+    font-size: 26px;
+    margin-bottom: 5px;
+}
+
+/* =========================
+   CARDS & LAYOUT
+========================= */
 .card{
-    background:white;
-    margin-top:20px;
-    padding:25px;
-    border-radius:15px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.05);
+    background: white;
+    margin-top: 20px;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
 }
 
 h2{
-    margin-bottom:15px;
-    color:#0F4C81;
+    margin-bottom: 15px;
+    color: #0F4C81;
 }
 
-/* FORM */
+/* =========================
+   FORM ELEMENTS
+========================= */
 input, textarea{
-    width:100%;
-    padding:12px;
-    margin-top:5px;
-    margin-bottom:15px;
-    border:1px solid #e5e7eb;
-    border-radius:10px;
-    outline:none;
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    outline: none;
+    transition: border 0.2s;
+}
+
+input:focus, textarea:focus {
+    border-color: #0F4C81;
 }
 
 button{
-    background:#0F4C81;
-    color:white;
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
+    background: #0F4C81;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
 }
 
-/* QUESTIONS */
-.question{
-    padding:15px;
-    border-left:4px solid #0F4C81;
-    background:#f8fbff;
-    margin-top:10px;
-    border-radius:10px;
+button:hover {
+    background: #1e6fb7;
 }
 
-.status{
-    font-size:12px;
-    color:gray;
+/* =========================
+   QUESTIONS LIST
+========================= */
+.question-card { /* Harmonisé avec ton JavaScript (question-card au lieu de question) */
+    padding: 15px;
+    border-left: 4px solid #0F4C81;
+    background: #f8fbff;
+    margin-top: 15px;
+    border-radius: 10px;
 }
-/* animation toast */
+
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Styles des badges de statut générés par le JS */
+.status {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+.status.pending {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+.status.answered {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.response {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #e5e7eb;
+}
+
+/* =========================
+   POPUP MODAL
+========================= */
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.popup.hidden {
+    display: none;
+}
+
+.popup-content {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    width: 320px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    animation: pop 0.3s ease;
+}
+
+.popup-content h3 {
+    color: #2ecc71;
+    margin-bottom: 10px;
+}
+
+.popup-content button {
+    margin-top: 15px;
+    padding: 8px 20px;
+    border: none;
+    background: #2ecc71;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.popup-content button:hover {
+    background: #27ae60;
+}
+
+/* =========================
+   ANIMATIONS
+========================= */
 @keyframes fadeIn {
     from {
         transform: translateY(-10px);
@@ -122,25 +232,13 @@ button{
     }
 }
 
-/* effet hover cards */
-.card {
-    transition: 0.3s;
-}
-
-.card:hover {
-    transform: translateY(-3px);
-}
-
-/* welcome box moderne */
-.welcome-box {
-    background: linear-gradient(135deg, #0F4C81, #1e6fb7);
-    color: white;
-    border-radius: 15px;
-    padding: 25px;
-    margin-top: 25px;
-}
-
-.welcome-box h1 {
-    color: white;
-    font-size: 26px;
+@keyframes pop {
+    from {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
