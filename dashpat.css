@@ -50,6 +50,18 @@ header h2{
 .welcome-box h1{
     color:#0F4C81;
 }
+.welcome-box { /* Remplace .welcome-box par le vrai nom de ta classe si nécessaire */
+    background-color: #0b5fa5; /* Ta couleur bleue actuelle */
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    
+    /* 🛠️ CE QU'IL FAUT AJOUTER POUR CENTRER LE TEXTE : */
+    display: flex;
+    justify-content: center; /* Centre horizontalement */
+    align-items: center;     /* Centre verticalement */
+    text-align: center;      /* Utile si le texte revient à la ligne */
+}
 
 /* CARD */
 .card{
