@@ -32,6 +32,7 @@ app.get("/test-db", async (req, res) => {
             time: result.rows[0]
         });
     } catch (err) {
+        console.error(err);
         res.status(500).json({
             message: "DB NON CONNECTÉE ❌",
             error: err.message
@@ -44,7 +45,6 @@ app.get("/test-db", async (req, res) => {
 ========================= */
 app.post("/api/register", async (req, res) => {
     try {
-        // Ajout de wilaya, profession, maladies depuis votre formulaire
         const {
             full_name,
             email,
@@ -53,33 +53,49 @@ app.post("/api/register", async (req, res) => {
             sexe,
             wilaya,
             profession,
-            maladies
+            medical_history
         } = req.body;
 
+        // Vérifier si email existe déjà
         const check = await pool.query(
             "SELECT * FROM patients WHERE email = $1",
             [email]
         );
 
         if (check.rows.length > 0) {
-            return res.status(409).json({ message: "Email déjà utilisé" });
+            return res.status(409).json({
+                message: "Email déjà utilisé"
+            });
         }
 
-        // Modification pour utiliser les colonnes de votre table Postgres : nom, sexe, wilaya, profession, maladies
+        // Insertion patient
         const result = await pool.query(
-            `INSERT INTO patients (nom, email, password, age, sexe, wilaya, profession, maladies)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             RETURNING *`,
-            [full_name, email, password, age, gender, wilaya || null, profession || null, maladies || null]
+            `INSERT INTO patients 
+            (nom, email, password, age, sexe, wilaya, profession, maladies)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING *`,
+            [
+                full_name,
+                email,
+                password,
+                age,
+                sexe,
+                wilaya || null,
+                profession || null,
+                medical_history || null
+            ]
         );
 
         res.json({
-            message: "Compte créé",
+            message: "Compte créé avec succès",
             user: result.rows[0]
         });
 
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(err);
+        res.status(500).json({
+            message: err.message
+        });
     }
 });
 
@@ -91,27 +107,34 @@ app.post("/api/login", async (req, res) => {
         const { email, password } = req.body;
 
         const result = await pool.query(
-            "SELECT * FROM patients WHERE email=$1",
+            "SELECT * FROM patients WHERE email = $1",
             [email]
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Utilisateur introuvable" });
+            return res.status(404).json({
+                message: "Utilisateur introuvable"
+            });
         }
 
         const user = result.rows[0];
 
         if (user.password !== password) {
-            return res.status(401).json({ message: "Mot de passe incorrect" });
+            return res.status(401).json({
+                message: "Mot de passe incorrect"
+            });
         }
 
         res.json({
             message: "Connexion réussie",
-            user
+            user: user
         });
 
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(err);
+        res.status(500).json({
+            message: err.message
+        });
     }
 });
 
@@ -123,9 +146,10 @@ app.post("/api/question", async (req, res) => {
         const { patients_id, subject, question } = req.body;
 
         const result = await pool.query(
-            `INSERT INTO patients_questions (patients_id, subject, question, status, response)
-             VALUES ($1,$2,$3,'pending',NULL)
-             RETURNING *`,
+            `INSERT INTO patients_questions 
+            (patients_id, subject, question, status, response)
+            VALUES ($1, $2, $3, 'pending', NULL)
+            RETURNING *`,
             [patients_id, subject, question]
         );
 
@@ -135,19 +159,20 @@ app.post("/api/question", async (req, res) => {
         });
 
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(err);
+        res.status(500).json({
+            message: err.message
+        });
     }
 });
 
 /* =========================
    GET QUESTIONS (DOCTOR)
-   JOIN PATIENTS
 ========================= */
 app.get("/api/questions", async (req, res) => {
     try {
-        // Changement de p.full_name à p.nom pour correspondre à votre table
         const result = await pool.query(`
-            SELECT 
+            SELECT
                 q.id,
                 q.patients_id,
                 q.subject,
@@ -164,7 +189,10 @@ app.get("/api/questions", async (req, res) => {
         res.json(result.rows);
 
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(err);
+        res.status(500).json({
+            message: err.message
+        });
     }
 });
 
@@ -177,9 +205,10 @@ app.post("/api/repondre", async (req, res) => {
 
         const result = await pool.query(
             `UPDATE patients_questions
-             SET response=$1, status='answered'
-             WHERE id=$2
-             RETURNING *`,
+            SET response = $1,
+                status = 'answered'
+            WHERE id = $2
+            RETURNING *`,
             [response, questionId]
         );
 
@@ -189,7 +218,10 @@ app.post("/api/repondre", async (req, res) => {
         });
 
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(err);
+        res.status(500).json({
+            message: err.message
+        });
     }
 });
 
