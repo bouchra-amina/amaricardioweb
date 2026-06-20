@@ -1,4 +1,5 @@
 let selectedQuestionId = null;
+window.allQuestions = []; // Tableau global pour stocker les questions de manière sécurisée
 
 document.addEventListener("DOMContentLoaded", () => {
     loadQuestions();
@@ -11,37 +12,45 @@ async function loadQuestions() {
     try {
         const res = await fetch("https://amaricardioweb-production.up.railway.app/api/questions");
         const questions = await res.json();
+        
+        // On sauvegarde les questions dans notre variable globale
+        window.allQuestions = questions;
 
         const container = document.getElementById("questionsContainer");
         container.innerHTML = "";
 
-        questions.forEach(q => {
+        if (questions.length === 0) {
+            container.innerHTML = "<p class='no-data'>Aucune demande de patient pour le moment.</p>";
+            return;
+        }
 
-            const preview = q.question.length > 100
+        questions.forEach(q => {
+            // Extrait le début de la demande (100 caractères max)
+            const preview = q.question && q.question.length > 100
                 ? q.question.substring(0, 100) + "..."
                 : q.question;
 
+            // Gestion de l'affichage du badge de statut
+            const statusClass = q.status === 'answered' ? 'status answered' : 'status pending';
+            const statusText = q.status === 'answered' ? 'Répondu' : 'En attente';
+
             container.innerHTML += `
                 <div class="card">
-
                     <h3>${q.full_name || "Patient inconnu"}</h3>
-
                     <p><strong>Sujet :</strong> ${q.subject || "Sans sujet"}</p>
-
-                    <p>${preview}</p>
-
-                    <div class="status">
-                        Statut : ${q.status}
+                    <p class="preview-text">"${preview}"</p>
+                    
+                    <div class="${statusClass}">
+                        ${statusText}
                     </div>
 
-                    <p><b>Réponse :</b> ${
-                        q.response ? q.response : "Pas encore répondu"
+                    <p class="response-box"><b>Réponse :</b> ${
+                        q.response ? q.response : "<i>Pas encore répondu</i>"
                     }</p>
 
-                    <button class="btn" onclick='openModal(${q.id}, ${JSON.stringify(q.question)}, ${JSON.stringify(q.full_name)}, ${JSON.stringify(q.subject)})'>
-                        Répondre
+                    <button class="btn" onclick="prepareModal(${q.id})">
+                        Répondre / Voir
                     </button>
-
                 </div>
             `;
         });
@@ -52,19 +61,28 @@ async function loadQuestions() {
 }
 
 // =========================
-// OUVRIR MODAL
+// PRÉPARER ET OUVRIR LE MODAL
 // =========================
-function openModal(id, question, patientName, subject) {
+function prepareModal(id) {
+    // On retrouve la question dans notre tableau global grâce à son ID
+    const q = window.allQuestions.find(item => item.id === id);
+    if (!q) return;
+
     selectedQuestionId = id;
 
+    // Affiche le modal en retirant la classe hidden
     document.getElementById("modal").classList.remove("hidden");
 
+    // Rempli les textes proprement sans casser le HTML
     document.getElementById("questionText").innerHTML = `
-        <p><b>Patient :</b> ${patientName}</p>
-        <p><b>Sujet :</b> ${subject || "Sans sujet"}</p>
-        <hr>
-        <p>${question}</p>
+        <p><b>Patient :</b> ${q.full_name || "Inconnu"}</p>
+        <p><b>Sujet :</b> ${q.subject || "Sans sujet"}</p>
+        <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
+        <p class="full-question-text"><b>Message du patient :</b><br>${q.question}</p>
     `;
+
+    // Si le médecin a déjà répondu, on pré-remplit le textarea avec son ancienne réponse
+    document.getElementById("responseText").value = q.response || "";
 }
 
 // =========================
@@ -73,17 +91,17 @@ function openModal(id, question, patientName, subject) {
 function closeModal() {
     document.getElementById("modal").classList.add("hidden");
     document.getElementById("responseText").value = "";
+    selectedQuestionId = null;
 }
 
 // =========================
 // ENVOYER RÉPONSE
 // =========================
 async function sendResponse() {
-
     const response = document.getElementById("responseText").value.trim();
 
     if (!response) {
-        alert("Écris une réponse");
+        alert("Veuillez écrire une réponse avant d'envoyer.");
         return;
     }
 
@@ -100,13 +118,13 @@ async function sendResponse() {
         });
 
         const result = await res.json();
-
-        alert(result.message);
-
+        
+        alert("Réponse enregistrée avec succès !");
         closeModal();
-        loadQuestions();
+        loadQuestions(); // Recharge la liste immédiatement pour voir le statut mis à jour
 
     } catch (err) {
         console.error("Erreur sendResponse:", err);
+        alert("Une erreur est survenue lors de l'envoi.");
     }
 }
