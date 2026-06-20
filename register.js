@@ -1,56 +1,44 @@
-app.post("/api/register", async (req, res) => {
+document.getElementById("registerForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    // récupérer les données du formulaire
+    const data = {
+        full_name: document.querySelector('input[name="full_name"]').value,
+        email: document.querySelector('input[name="email"]').value,
+        password: document.querySelector('input[name="password"]').value,
+        age: document.querySelector('input[name="age"]').value,
+        sexe: document.querySelector('select[name="sexe"]').value,
+        wilaya: document.querySelector('input[name="wilaya"]').value,
+        profession: document.querySelector('input[name="profession"]').value,
+
+        // IMPORTANT : correspond au backend
+        medical_history: document.querySelector('textarea[name="medical_history"]').value
+    };
+
     try {
-        const {
-            full_name,
-            email,
-            password,
-            age,
-            sexe,
-            wilaya,
-            profession,
-            medical_history
-        } = req.body;
+        const res = await fetch("https://amaricardioweb-production.up.railway.app/api/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
 
-        // vérifier email existant
-        const check = await pool.query(
-            "SELECT * FROM patients WHERE email = $1",
-            [email]
-        );
+        const result = await res.json();
 
-        if (check.rows.length > 0) {
-            return res.status(409).json({
-                message: "Email déjà utilisé"
-            });
+        // afficher message du serveur
+        document.getElementById("message").innerText = result.message;
+
+        // si inscription réussie
+        if (res.ok) {
+            localStorage.setItem("user", JSON.stringify(result.user));
+
+            // redirection
+            window.location.href = "dashpat.html";
         }
 
-        // insertion
-        const result = await pool.query(
-            `INSERT INTO patients
-            (nom, email, password, age, sexe, wilaya, profession, maladies)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-            RETURNING *`,
-            [
-                full_name,
-                email,
-                password,
-                age,
-                sexe,                // PAS gender
-                wilaya || null,
-                profession || null,
-                medical_history || null
-            ]
-        );
-
-        res.json({
-            message: "Compte créé avec succès",
-            user: result.rows[0]
-        });
-
-    } catch (err) {
-        console.error(err);
-
-        res.status(500).json({
-            message: err.message
-        });
+    } catch (error) {
+        console.error("Erreur :", error);
+        document.getElementById("message").innerText = "Erreur serveur";
     }
 });
