@@ -20,42 +20,39 @@
 
 <div class="container">
 
-    <!-- HEADER PATIENT -->
     <div class="welcome-box">
-       
         <h1 id="welcome"></h1>
-             <br>Bienvenue dans votre espace patient sécurisé</br>
+        <br>Bienvenue dans votre espace patient sécurisé
     </div>
 
-    <!-- NOUVELLE QUESTION -->
     <div class="card">
-
         <h2>Poser une question au Dr Amari</h2>
 
         <form id="questionForm">
-
             <label>Sujet</label>
             <input type="text" id="subject" placeholder="Ex : Douleurs thoraciques" required>
 
             <label>Votre question</label>
-            <textarea id="question" rows="5" placeholder="Décrivez vos symptômes, leur durée, et les traitements en cours (nom du médicament et dosage si possible)"  required></textarea>
+            <textarea id="question" rows="5" placeholder="Décrivez vos symptômes, leur durée, et les traitements en cours (nom du médicament et dosage si possible)" required></textarea>
 
             <button type="submit">Envoyer la demande</button>
-
         </form>
 
         <p id="message"></p>
     </div>
 
-    <!-- MES QUESTIONS -->
     <div class="card">
-
         <h2>Mes demandes</h2>
-
         <div id="questionsList"></div>
-
     </div>
 
+</div>
+
+<div id="popup" class="popup hidden">
+    <div class="popup-content">
+        <h3>✔ Succès</h3>
+        <p id="popupMessage">Votre demande a été envoyée avec succès.</p>
+        <button id="closePopupBtn">OK</button> </div>
 </div>
 
 <script src="dashboard.js"></script>
