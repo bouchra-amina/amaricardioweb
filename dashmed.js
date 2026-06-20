@@ -1,5 +1,5 @@
 let selectedQuestionId = null;
-window.allQuestions = []; // Tableau global pour stocker les questions de manière sécurisée
+window.allQuestions = []; 
 
 document.addEventListener("DOMContentLoaded", () => {
     loadQuestions();
@@ -13,34 +13,34 @@ async function loadQuestions() {
         const res = await fetch("https://amaricardioweb-production.up.railway.app/api/questions");
         const questions = await res.json();
         
-        // On sauvegarde les questions dans notre variable globale
         window.allQuestions = questions;
 
         const container = document.getElementById("questionsContainer");
         container.innerHTML = "";
 
-        if (questions.length === 0) {
-            container.innerHTML = "<p class='no-data'>Aucune demande de patient pour le moment.</p>";
+        // Si le tableau est vide (ou si la jointure SQL n'a rien renvoyé)
+        if (!questions || questions.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <p>Aucune demande de patient trouvée dans le système.</p>
+                    <small>Vérifie que le patient avec l'ID 1 existe bien dans la table 'patients'.</small>
+                </div>
+            `;
             return;
         }
 
         questions.forEach(q => {
-            // Extrait le début de la demande (100 caractères max)
-            const preview = q.question && q.question.length > 100
-                ? q.question.substring(0, 100) + "..."
-                : q.question;
-
-            // Gestion de l'affichage du badge de statut
+            const preview = q.question ? (q.question.length > 100 ? q.question.substring(0, 100) + "..." : q.question) : "Pas de message";
             const statusClass = q.status === 'answered' ? 'status answered' : 'status pending';
             const statusText = q.status === 'answered' ? 'Répondu' : 'En attente';
 
             container.innerHTML += `
-                <div class="card">
-                    <h3>${q.full_name || "Patient inconnu"}</h3>
+                <div class="card" style="background: white; padding: 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <h3>${q.full_name || "Patient N° " + q.patients_id}</h3>
                     <p><strong>Sujet :</strong> ${q.subject || "Sans sujet"}</p>
-                    <p class="preview-text">"${preview}"</p>
+                    <p class="preview-text"><em>"${preview}"</em></p>
                     
-                    <div class="${statusClass}">
+                    <div class="${statusClass}" style="margin: 10px 0; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
                         ${statusText}
                     </div>
 
@@ -48,7 +48,7 @@ async function loadQuestions() {
                         q.response ? q.response : "<i>Pas encore répondu</i>"
                     }</p>
 
-                    <button class="btn" onclick="prepareModal(${q.id})">
+                    <button class="btn" onclick="prepareModal(${q.id})" style="cursor: pointer;">
                         Répondre / Voir
                     </button>
                 </div>
@@ -57,6 +57,7 @@ async function loadQuestions() {
 
     } catch (err) {
         console.error("Erreur loadQuestions:", err);
+        document.getElementById("questionsContainer").innerHTML = "<p style='color: red;'>Erreur lors du chargement des données de l'API.</p>";
     }
 }
 
@@ -64,24 +65,19 @@ async function loadQuestions() {
 // PRÉPARER ET OUVRIR LE MODAL
 // =========================
 function prepareModal(id) {
-    // On retrouve la question dans notre tableau global grâce à son ID
     const q = window.allQuestions.find(item => item.id === id);
     if (!q) return;
 
     selectedQuestionId = id;
-
-    // Affiche le modal en retirant la classe hidden
     document.getElementById("modal").classList.remove("hidden");
 
-    // Rempli les textes proprement sans casser le HTML
     document.getElementById("questionText").innerHTML = `
-        <p><b>Patient :</b> ${q.full_name || "Inconnu"}</p>
+        <p><b>Patient :</b> ${q.full_name || "Patient N° " + q.patients_id}</p>
         <p><b>Sujet :</b> ${q.subject || "Sans sujet"}</p>
         <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
-        <p class="full-question-text"><b>Message du patient :</b><br>${q.question}</p>
+        <p class="full-question-text"><b>Message :</b><br>${q.question}</p>
     `;
 
-    // Si le médecin a déjà répondu, on pré-remplit le textarea avec son ancienne réponse
     document.getElementById("responseText").value = q.response || "";
 }
 
@@ -108,23 +104,22 @@ async function sendResponse() {
     try {
         const res = await fetch("https://amaricardioweb-production.up.railway.app/api/repondre", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 questionId: selectedQuestionId,
                 response: response
             })
         });
 
-        const result = await res.json();
-        
-        alert("Réponse enregistrée avec succès !");
-        closeModal();
-        loadQuestions(); // Recharge la liste immédiatement pour voir le statut mis à jour
+        if (res.ok) {
+            alert("Réponse enregistrée avec succès !");
+            closeModal();
+            loadQuestions();
+        } else {
+            alert("Erreur lors de l'enregistrement.");
+        }
 
     } catch (err) {
         console.error("Erreur sendResponse:", err);
-        alert("Une erreur est survenue lors de l'envoi.");
     }
 }
