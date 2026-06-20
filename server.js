@@ -68,10 +68,10 @@ app.post("/api/register", async (req, res) => {
             });
         }
 
-        // Insertion patient
+        // 🛠️ CORRECTION : Remplacement de "nom" par "full_name" pour correspondre à ta table Postgres Railway
         const result = await pool.query(
             `INSERT INTO patients 
-            (nom, email, password, age, sexe, wilaya, profession, maladies)
+            (full_name, email, password, age, sexe, wilaya, profession, maladies)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *`,
             [
@@ -167,10 +167,11 @@ app.post("/api/question", async (req, res) => {
 });
 
 /* =========================
-   GET QUESTIONS (DOCTOR)
+   GET QUESTIONS (DOCTOR & PATIENT FILTER)
 ========================= */
 app.get("/api/questions", async (req, res) => {
     try {
+        // 🛠️ CORRECTION : Récupération de p.full_name au lieu de p.nom qui faisait planter la jointure SQL (Erreur 500)
         const result = await pool.query(`
             SELECT
                 q.id,
@@ -180,7 +181,7 @@ app.get("/api/questions", async (req, res) => {
                 q.status,
                 q.response,
                 q.created_at,
-                p.nom
+                p.full_name
             FROM patients_questions q
             JOIN patients p ON p.id = q.patients_id
             ORDER BY q.id DESC
@@ -189,9 +190,10 @@ app.get("/api/questions", async (req, res) => {
         res.json(result.rows);
 
     } catch (err) {
-        console.error(err);
+        console.error("Erreur dans GET /api/questions :", err.message);
         res.status(500).json({
-            message: err.message
+            message: "Erreur lors de la récupération des questions",
+            error: err.message
         });
     }
 });
