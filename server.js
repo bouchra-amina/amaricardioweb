@@ -46,7 +46,7 @@ app.get("/test-db", async (req, res) => {
 app.post("/api/register", async (req, res) => {
     try {
         const {
-            full_name,
+            nom, // 🛠️ CORRIGÉ : On extrait la clé "nom" envoyée par ton register.js
             email,
             password,
             age,
@@ -68,13 +68,14 @@ app.post("/api/register", async (req, res) => {
             });
         }
 
+        // 🛠️ CORRIGÉ : Insertion SQL modifiée pour utiliser la colonne "nom"
         const result = await pool.query(
             `INSERT INTO patients 
-            (full_name, email, password, age, sexe, wilaya, profession, maladies)
+            (nom, email, password, age, sexe, wilaya, profession, maladies)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *`,
             [
-                full_name,
+                nom,
                 email,
                 password,
                 age,
@@ -170,7 +171,7 @@ app.post("/api/question", async (req, res) => {
 ========================= */
 app.get("/api/questions", async (req, res) => {
     try {
-        // 1. On tente la requête avec le LEFT JOIN
+        // 🛠️ CORRIGÉ : p.full_name remplacé par p.nom AS full_name pour préserver ton affichage front-end
         const result = await pool.query(`
             SELECT
                 q.id,
@@ -180,7 +181,7 @@ app.get("/api/questions", async (req, res) => {
                 q.status,
                 q.response,
                 q.created_at,
-                p.full_name
+                p.nom AS full_name
             FROM patients_questions q
             LEFT JOIN patients p ON p.id = q.patients_id
             ORDER BY q.id DESC
@@ -191,15 +192,12 @@ app.get("/api/questions", async (req, res) => {
         console.warn("Alerte jointure SQL, tentative de récupération simple :", err.message);
         
         try {
-            // 2. PLAN DE SECOURS : Si la table 'patients' pose problème, 
-            // on charge quand même les questions pour que le médecin voie l'écran !
             const backupResult = await pool.query(`
                 SELECT id, patients_id, subject, question, status, response, created_at 
                 FROM patients_questions 
                 ORDER BY id DESC
             `);
             
-            // On ajoute un nom par défaut pour ne pas faire planter l'affichage
             const questions = backupResult.rows.map(q => ({
                 ...q,
                 full_name: "Patient N°" + q.patients_id
@@ -209,7 +207,7 @@ app.get("/api/questions", async (req, res) => {
 
         } catch (backupErr) {
             console.error("Erreur critique SQL :", backupErr.message);
-            return res.status(500).json([]); // Renvoie un tableau vide pour éviter le crash du forEach
+            return res.status(500).json([]); 
         }
     }
 });
