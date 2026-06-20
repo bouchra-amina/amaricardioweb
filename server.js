@@ -56,7 +56,7 @@ app.post("/api/register", async (req, res) => {
             medical_history
         } = req.body;
 
-        // Vérifier si email existe déjà
+        // Vérifier si l'email existe déjà
         const check = await pool.query(
             "SELECT * FROM patients WHERE email = $1",
             [email]
@@ -68,7 +68,6 @@ app.post("/api/register", async (req, res) => {
             });
         }
 
-        // 🛠️ CORRECTION : Remplacement de "nom" par "full_name" pour correspondre à ta table Postgres Railway
         const result = await pool.query(
             `INSERT INTO patients 
             (full_name, email, password, age, sexe, wilaya, profession, maladies)
@@ -169,13 +168,9 @@ app.post("/api/question", async (req, res) => {
 /* =========================
    GET QUESTIONS (DOCTOR & PATIENT FILTER)
 ========================= */
-/* =========================
-   GET QUESTIONS (CORRIGÉ AVEC LEFT JOIN)
-========================= */
 app.get("/api/questions", async (req, res) => {
     try {
-        // 🛠️ CORRECTION : Utilisation de LEFT JOIN au lieu de JOIN 
-        // pour ne pas crasher si un identifiant de patient n'est pas trouvé
+        // 1. On tente la requête avec le LEFT JOIN
         const result = await pool.query(`
             SELECT
                 q.id,
@@ -190,16 +185,32 @@ app.get("/api/questions", async (req, res) => {
             LEFT JOIN patients p ON p.id = q.patients_id
             ORDER BY q.id DESC
         `);
-
-        // Toujours renvoyer un tableau, même vide
-        res.json(result.rows || []);
+        return res.json(result.rows || []);
 
     } catch (err) {
-        console.error("Erreur dans GET /api/questions :", err.message);
-        res.status(500).json({
-            message: "Erreur lors de la récupération des questions",
-            error: err.message
-        });
+        console.warn("Alerte jointure SQL, tentative de récupération simple :", err.message);
+        
+        try {
+            // 2. PLAN DE SECOURS : Si la table 'patients' pose problème, 
+            // on charge quand même les questions pour que le médecin voie l'écran !
+            const backupResult = await pool.query(`
+                SELECT id, patients_id, subject, question, status, response, created_at 
+                FROM patients_questions 
+                ORDER BY id DESC
+            `);
+            
+            // On ajoute un nom par défaut pour ne pas faire planter l'affichage
+            const questions = backupResult.rows.map(q => ({
+                ...q,
+                full_name: "Patient N°" + q.patients_id
+            }));
+            
+            return res.json(questions);
+
+        } catch (backupErr) {
+            console.error("Erreur critique SQL :", backupErr.message);
+            return res.status(500).json([]); // Renvoie un tableau vide pour éviter le crash du forEach
+        }
     }
 });
 
