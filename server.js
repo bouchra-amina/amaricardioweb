@@ -169,9 +169,13 @@ app.post("/api/question", async (req, res) => {
 /* =========================
    GET QUESTIONS (DOCTOR & PATIENT FILTER)
 ========================= */
+/* =========================
+   GET QUESTIONS (CORRIGÉ AVEC LEFT JOIN)
+========================= */
 app.get("/api/questions", async (req, res) => {
     try {
-        // 🛠️ CORRECTION : Récupération de p.full_name au lieu de p.nom qui faisait planter la jointure SQL (Erreur 500)
+        // 🛠️ CORRECTION : Utilisation de LEFT JOIN au lieu de JOIN 
+        // pour ne pas crasher si un identifiant de patient n'est pas trouvé
         const result = await pool.query(`
             SELECT
                 q.id,
@@ -183,11 +187,12 @@ app.get("/api/questions", async (req, res) => {
                 q.created_at,
                 p.full_name
             FROM patients_questions q
-            JOIN patients p ON p.id = q.patients_id
+            LEFT JOIN patients p ON p.id = q.patients_id
             ORDER BY q.id DESC
         `);
 
-        res.json(result.rows);
+        // Toujours renvoyer un tableau, même vide
+        res.json(result.rows || []);
 
     } catch (err) {
         console.error("Erreur dans GET /api/questions :", err.message);
