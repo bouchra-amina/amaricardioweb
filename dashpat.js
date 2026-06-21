@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const userId = user.id;
 
     // Attention : Assure-toi que ton serveur renvoie bien .full_name et pas .nom
-    document.getElementById("welcome").innerText = `Bienvenue, ${user.full_name || user.nom || "Patient"}`;
+    document.getElementById("welcome").innerText = `Bienvenue, ${user.full_name || user.nom || "Patient"},dans votre espace patient sécurisé`;
 
     const form = document.getElementById("questionForm");
 
