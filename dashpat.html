@@ -7,50 +7,194 @@
 
     <link rel="stylesheet" href="dashpat.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icônes -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <link rel="icon" type="image/png" href="logocard.jpg">
 </head>
+
 <body>
 
+<!-- ================= HEADER ================= -->
+
 <header>
-    <div class="container">
-        <h2>Cabinet Dr Amari</h2>
-        <a href="login.html" class="logout">Déconnexion</a>
+    <div class="container header-content">
+
+        <div class="logo">
+            <h2>
+                <i class="fa-solid fa-heart-pulse"></i>
+                Cabinet Dr Amari
+            </h2>
+        </div>
+
+        <a href="login.html" class="logout" id="logoutBtn">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Déconnexion
+        </a>
+
     </div>
 </header>
 
+
 <div class="container">
 
-   
+    <!-- ================= WELCOME ================= -->
 
-    <div class="card">
-        <h2>Poser une question au Dr Amari</h2>
+    <section class="welcome-box">
+
+        <h1 id="welcome">
+            Bonjour
+        </h1>
+
+        <p>
+            Bienvenue dans votre espace patient sécurisé.
+            Vous pouvez envoyer vos demandes médicales,
+            consulter les réponses du Dr Amari
+            et suivre l'état de chacune de vos demandes
+            en toute confidentialité.
+        </p>
+
+    </section>
+
+
+    <!-- ================= FORMULAIRE ================= -->
+
+    <section class="card">
+
+        <div class="card-title">
+
+            <h2>
+                <i class="fa-solid fa-comment-medical"></i>
+                Poser une question au Dr Amari
+            </h2>
+
+        </div>
 
         <form id="questionForm">
-            <label>Sujet</label>
-            <input type="text" id="subject" placeholder="Ex : Douleurs thoraciques" required>
 
-            <label>Votre question</label>
-            <textarea id="question" rows="5" placeholder="Décrivez vos symptômes, leur durée, et les traitements en cours (nom du médicament et dosage si possible)" required></textarea>
+            <label for="subject">
+                Sujet
+            </label>
 
-            <button type="submit">Envoyer la demande</button>
+            <input
+                type="text"
+                id="subject"
+                maxlength="80"
+                placeholder="Ex : Douleurs thoraciques"
+                required
+            >
+
+            <label for="question">
+                Votre question
+            </label>
+
+            <textarea
+                id="question"
+                rows="6"
+                maxlength="500"
+                placeholder="Décrivez vos symptômes, leur durée, les traitements en cours (nom du médicament et dosage si possible)..."
+                required
+            ></textarea>
+
+            <div class="form-footer">
+
+                <small id="count">
+                    0 / 500 caractères
+                </small>
+
+            </div>
+
+            <div class="medical-note">
+
+                <i class="fa-solid fa-circle-info"></i>
+
+                Les réponses fournies via cette plateforme ne remplacent
+                pas une consultation médicale au cabinet.
+
+            </div>
+
+            <button type="submit" id="submitBtn">
+
+                <i class="fa-solid fa-paper-plane"></i>
+                Envoyer la demande
+
+            </button>
+
         </form>
 
-        <p id="message"></p>
-    </div>
+    </section>
 
-    <div class="card">
-        <h2>Mes demandes</h2>
+
+    <!-- ================= DEMANDES ================= -->
+
+    <section class="card">
+
+        <div class="card-title">
+
+            <h2 id="questionsTitle">
+
+                <i class="fa-solid fa-folder-open"></i>
+
+                Mes demandes
+
+            </h2>
+
+        </div>
+
+        <!-- Loader -->
+
+        <div id="loading" class="loading">
+
+            <div class="spinner"></div>
+
+            <p>Chargement de vos demandes...</p>
+
+        </div>
+
+        <!-- Liste -->
+
         <div id="questionsList"></div>
-    </div>
+
+    </section>
 
 </div>
+
+
+
+<!-- ================= POPUP ================= -->
 
 <div id="popup" class="popup hidden">
+
     <div class="popup-content">
-        <h3>✔ Succès</h3>
-        <p id="popupMessage">Votre demande a été envoyée avec succès.</p>
-        <button id="closePopupBtn">OK</button> </div>
+
+        <div class="popup-icon">
+
+            <i class="fa-solid fa-circle-check"></i>
+
+        </div>
+
+        <h3>Demande envoyée</h3>
+
+        <p id="popupMessage">
+
+            Votre demande a été envoyée avec succès.
+
+        </p>
+
+        <button id="closePopupBtn">
+
+            OK
+
+        </button>
+
+    </div>
+
 </div>
+
+
+<!-- ================= JS ================= -->
 
 <script src="dashpat.js"></script>
 
