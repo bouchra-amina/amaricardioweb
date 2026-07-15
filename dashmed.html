@@ -1,44 +1,397 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Médecin | Dr Amari</title>
+
+    <title>Dashboard Médecin | Cabinet Dr Amari</title>
+
+
     <link rel="stylesheet" href="dashmed.css">
+
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+
+    <!-- Icônes médicales -->
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+
     <link rel="icon" type="image/png" href="logocard.jpg">
+
 </head>
+
+
 <body>
 
+
+<!-- ================= HEADER ================= -->
+
 <header>
-    <div class="container">
-        <h2>Dr Amari - Espace Médecin</h2>
-        <a href="login.html" class="logout">Déconnexion</a>
+
+    <div class="container header-content">
+
+
+        <div class="logo">
+
+            <h2>
+
+                <i class="fa-solid fa-heart-pulse"></i>
+
+                Cabinet Dr Amari
+
+            </h2>
+
+
+            <span>
+
+                Espace Médecin
+
+            </span>
+
+        </div>
+
+
+
+        <a href="login.html" class="logout" id="logoutBtn">
+
+            <i class="fa-solid fa-right-from-bracket"></i>
+
+            Déconnexion
+
+        </a>
+
+
     </div>
+
+
 </header>
 
-<div class="container">
-    <h1 class="title">Demandes des patients</h1>
 
-    <div id="questionsContainer"></div>
+
+
+<div class="container">
+
+
+    <!-- ================= BIENVENUE ================= -->
+
+
+    <section class="welcome-box">
+
+
+        <h1>
+
+            Bonjour Dr Amari 👨‍⚕️
+
+        </h1>
+
+
+        <p>
+
+            Gérez les demandes de vos patients,
+            consultez leurs questions et apportez
+            des réponses médicales personnalisées
+            depuis votre espace sécurisé.
+
+        </p>
+
+
+    </section>
+
+    <!-- ================= STATISTIQUES ================= -->
+
+
+    <section class="stats-container">
+
+
+        <div class="stat-card">
+
+
+            <div class="stat-icon">
+
+                <i class="fa-solid fa-envelope"></i>
+
+            </div>
+
+
+            <div>
+
+                <h3 id="totalQuestions">
+
+                    0
+
+                </h3>
+
+                <p>
+
+                    Total demandes
+
+                </p>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="stat-card pending-card">
+
+
+            <div class="stat-icon">
+
+                <i class="fa-solid fa-clock"></i>
+
+            </div>
+
+
+            <div>
+
+                <h3 id="pendingQuestions">
+
+                    0
+
+                </h3>
+
+                <p>
+
+                    En attente
+
+                </p>
+
+            </div>
+
+
+        </div>
+
+        <div class="stat-card answered-card">
+
+
+            <div class="stat-icon">
+
+                <i class="fa-solid fa-circle-check"></i>
+
+            </div>
+
+
+            <div>
+
+                <h3 id="answeredQuestions">
+
+                    0
+
+                </h3>
+
+                <p>
+
+                    Répondues
+
+                </p>
+
+            </div>
+
+
+        </div>
+
+
+
+    </section>
+
+    <!-- ================= DEMANDES ================= -->
+
+
+    <section class="card">
+
+
+        <div class="section-header">
+
+
+            <h2>
+
+
+                <i class="fa-solid fa-users-medical"></i>
+
+
+                Demandes des patients
+
+
+            </h2>
+
+
+
+            <div class="filter-buttons">
+
+
+                <button class="filter active" data-filter="all">
+
+                    Toutes
+
+                </button>
+
+
+                <button class="filter" data-filter="pending">
+
+                    En attente
+
+                </button>
+
+
+                <button class="filter" data-filter="answered">
+
+                    Répondues
+
+                </button>
+
+
+
+            </div>
+
+
+        </div>
+
+        <!-- Loader -->
+
+        <div id="loading" class="loading">
+
+
+            <div class="spinner"></div>
+
+
+            <p>
+
+                Chargement des demandes...
+
+            </p>
+
+
+        </div>
+
+        <!-- Les cartes seront injectées ici -->
+
+        <div id="questionsContainer"></div>
+
+    </section>
+
 </div>
+
+
+<!-- ================= MODAL REPONSE ================= -->
 
 <div id="modal" class="modal hidden">
+
+
     <div class="modal-content">
-        <h2>Répondre au patient</h2>
-        
-        <div id="questionText"></div>
-        
-        <textarea id="responseText" rows="5" placeholder="Écrire la réponse du médecin..."></textarea>
-        
-        <div class="modal-actions">
-            <button onclick="sendResponse()">Envoyer la réponse</button>
-            <button class="close" onclick="closeModal()">Fermer</button>
+
+
+
+        <div class="modal-header">
+
+
+            <h2>
+
+                <i class="fa-solid fa-user-doctor"></i>
+
+                Répondre au patient
+
+            </h2>
+
+
+
+            <button class="modal-close" onclick="closeModal()">
+
+                ✕
+
+            </button>
+
+
         </div>
+
+
+        <div id="questionText" class="patient-question">
+
+
+        </div>
+
+
+        <label>
+
+            Votre réponse médicale
+
+        </label>
+
+
+
+        <textarea
+
+            id="responseText"
+
+            rows="6"
+
+            maxlength="1000"
+
+            placeholder="Écrire votre réponse au patient..."
+
+        ></textarea>
+
+
+
+
+        <div class="response-counter">
+
+            <span id="responseCount">
+
+                0 / 1000 caractères
+
+            </span>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+
+
+            <button
+
+                class="send-btn"
+
+                onclick="sendResponse()">
+
+                <i class="fa-solid fa-paper-plane"></i>
+
+                Envoyer la réponse
+
+            </button>
+
+
+            <button
+
+                class="close-btn"
+
+                onclick="closeModal()">
+
+                Fermer
+
+            </button>
+
+
+
+        </div>
+
+
+
     </div>
+
+
 </div>
+
 
 <script src="dashmed.js"></script>
 
+
 </body>
+
 </html>
