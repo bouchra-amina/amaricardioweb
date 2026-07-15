@@ -128,13 +128,6 @@ async function loadQuestions(){
 
 }
 
-
-
-
-
-
-
-
 /* =========================
    STATISTIQUES
 ========================= */
@@ -176,22 +169,12 @@ function updateStatistics(){
 
 
 }
-
-
-
-
-
-
-
-
 /* =========================
    AFFICHAGE QUESTIONS
 ========================= */
 
 
 function displayQuestions(){
-
-
 
     const container =
     document.getElementById(
@@ -449,14 +432,6 @@ function setupFilters(){
 
 
 }
-
-
-
-
-
-
-
-
 /* =========================
    OUVRIR MODAL
 ========================= */
@@ -553,6 +528,7 @@ function openModal(id){
 
     updateResponseCounter();
 
+}
 
 /* =========================
    FERMER MODAL
